@@ -1,12 +1,12 @@
-import { useState, useEffect, useCallback } from 'react';
-import { 
-  getMedicines, 
-  addMedicine as apiAdd, 
-  updateMedicine as apiUpdate, 
-  deleteMedicine as apiDelete, 
+import { useState, useEffect, useCallback } from "react";
+import {
+  getMedicines,
+  addMedicine as apiAdd,
+  updateMedicine as apiUpdate,
+  deleteMedicine as apiDelete,
   importMedicines as apiImport,
-  searchMedicines as apiSearch
-} from '../api/medicineService';
+  searchMedicines as apiSearch,
+} from "../api/medicineService";
 
 export const useMedicines = () => {
   const [medicines, setMedicines] = useState([]);
@@ -37,7 +37,12 @@ export const useMedicines = () => {
       await fetchMedicines();
       return { success: true, message: "Medicine added successfully!" };
     } catch (err) {
-      return { success: false, message: "Failed to add medicine: " + (err.response?.data?.message || err.message) };
+      return {
+        success: false,
+        message:
+          "Failed to add medicine: " +
+          (err.response?.data?.message || err.message),
+      };
     }
   };
 
@@ -47,51 +52,68 @@ export const useMedicines = () => {
       await fetchMedicines();
       return { success: true, message: "Medicine updated successfully!" };
     } catch (err) {
-      return { success: false, message: "Failed to update medicine: " + (err.response?.data?.message || err.message) };
+      return {
+        success: false,
+        message:
+          "Failed to update medicine: " +
+          (err.response?.data?.message || err.message),
+      };
     }
   };
 
   const deleteMedicine = async (id) => {
     try {
-        await apiDelete(id);
-        await fetchMedicines();
-        return { success: true, message: "Medicine deleted successfully!" };
+      await apiDelete(id);
+      await fetchMedicines();
+      return { success: true, message: "Medicine deleted successfully!" };
     } catch (err) {
-        return { success: false, message: "Failed to delete medicine: " + (err.response?.data?.message || err.message) };
+      return {
+        success: false,
+        message:
+          "Failed to delete medicine: " +
+          (err.response?.data?.message || err.message),
+      };
     }
   };
 
-// Removed unused sellMedicine import and function
-
-  const importMedicines = async (file) => {
-      const formData = new FormData();
-      formData.append('file', file);
-  
-      try {
-        const response = await apiImport(formData);
-        await fetchMedicines();
-        return { success: true, message: response.message || "Import successful!" };
-      } catch (err) {
-        return { success: false, message: "Import failed: " + (err.response?.data?.message || err.message) };
-      }
+  const importMedicines = async (formData) => {
+    try {
+      const response = await apiImport(formData);
+      await fetchMedicines();
+      return {
+        success: true,
+        message: response.message || "Import successful!",
+      };
+    } catch (err) {
+      const status = err.response?.status;
+      return {
+        success: false,
+        status: status,
+        message:
+          err.response?.data?.message || err.response?.data || err.message,
+      };
+    }
   };
 
-  const searchMedicines = useCallback(async (query) => {
+  const searchMedicines = useCallback(
+    async (query) => {
       try {
-          if (!query) {
-              await fetchMedicines();
-              return;
-          }
-          setLoading(true);
-          // Using imported apiSearch
-          const results = await apiSearch(query);
-          setMedicines(results);
+        if (!query) {
+          await fetchMedicines();
+          return;
+        }
+        setLoading(true);
+        // Using imported apiSearch
+        const results = await apiSearch(query);
+        setMedicines(results);
       } catch (err) {
-          console.error("Search failed:", err);
+        console.error("Search failed:", err);
       } finally {
-          setLoading(false);
+        setLoading(false);
       }
-  }, [fetchMedicines]);
+    },
+    [fetchMedicines],
+  );
 
   return {
     medicines,
@@ -102,6 +124,6 @@ export const useMedicines = () => {
     updateMedicine,
     deleteMedicine,
     importMedicines,
-    searchMedicines
+    searchMedicines,
   };
 };

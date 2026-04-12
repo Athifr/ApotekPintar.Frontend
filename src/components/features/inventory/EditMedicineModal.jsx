@@ -6,20 +6,27 @@ const EditMedicineModal = ({ isOpen, onClose, onUpdate, medicine }) => {
         medicineName: '',
         categoryId: '',
         sku: '',
-        unit: 'Strip', // Default unit
+        unit: 'Strip',
         stock: '',
-        price: ''
+        price: '',
+        expiryDate: ''
     });
 
     useEffect(() => {
         if (medicine) {
+            let formattedDate = '';
+            if (medicine.expiryDate) {
+                formattedDate = new Date(medicine.expiryDate).toISOString().split('T')[0];
+            }
+
             setFormData({
-                medicineName: medicine.medicineName,
-                categoryId: medicine.categoryId,
-                sku: medicine.sku,
-                unit: medicine.unit || 'Strip', // Use existing unit or default
-                stock: medicine.stock,
-                price: medicine.price
+                medicineName: medicine.medicineName || '',
+                categoryId: medicine.categoryId || '',
+                sku: medicine.sku || '',
+                unit: medicine.unit || 'Strip',
+                stock: medicine.stock || '',
+                price: medicine.price || '',
+                expiryDate: formattedDate
             });
         }
     }, [medicine]);
@@ -37,16 +44,17 @@ const EditMedicineModal = ({ isOpen, onClose, onUpdate, medicine }) => {
     const handleSubmit = (e) => {
         e.preventDefault();
         if (!formData.medicineName || !formData.categoryId || !formData.sku || !formData.stock || !formData.price) {
-            alert("All fields are required!");
+            alert("Semua field kecuali Expiry Date wajib diisi!");
             return;
         }
 
         onUpdate(medicine.id, {
             ...formData,
-            id: medicine.id, // Ensure ID is included
+            id: medicine.id,
             categoryId: parseInt(formData.categoryId),
             stock: parseInt(formData.stock),
-            price: parseFloat(formData.price)
+            price: parseFloat(formData.price),
+            expiryDate: formData.expiryDate ? formData.expiryDate : null
         });
     };
 
@@ -114,6 +122,20 @@ const EditMedicineModal = ({ isOpen, onClose, onUpdate, medicine }) => {
                             <option value="Pcs">Pcs</option>
                         </select>
                     </div>
+                    
+                    <div className="mb-4">
+                        <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="expiryDate">
+                            Expiry Date (ED)
+                        </label>
+                        <input
+                            type="date"
+                            name="expiryDate"
+                            value={formData.expiryDate}
+                            onChange={handleChange}
+                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        />
+                    </div>
+
                     <div className="flex gap-4 mb-4">
                         <div className="w-1/2">
                             <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="stock">

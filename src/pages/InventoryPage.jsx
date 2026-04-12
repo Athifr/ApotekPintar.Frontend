@@ -4,12 +4,30 @@ import InventoryHeader from '../components/features/inventory/InventoryHeader';
 import MedicineTable from '../components/features/inventory/MedicineTable';
 import AddMedicineModal from '../components/features/inventory/AddMedicineModal';
 import EditMedicineModal from '../components/features/inventory/EditMedicineModal';
+import ImportCsvModal from '../components/features/inventory/ImportCsvModal';
+import ToastNotification from '../components/ui/ToastNotification';
+import ConfirmDialog from '../components/ui/ConfirmDialog';
 
 const InventoryPage = () => {
     // State
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [selectedMedicine, setSelectedMedicine] = useState(null);
+
+    // Toast state
+    const [toast, setToast] = useState({ visible: false, type: 'info', title: '', message: '' });
+
+    // Confirm dialog state
+    const [confirmDialog, setConfirmDialog] = useState({ visible: false, id: null, name: '' });
+
+    const showToast = (type, title, message, duration = 3000) => {
+        setToast({ visible: true, type, title, message, duration });
+    };
+
+    const hideToast = () => {
+        setToast(prev => ({ ...prev, visible: false }));
+    };
 
     // Custom Hooks
     const {
@@ -28,9 +46,9 @@ const InventoryPage = () => {
         const result = await addMedicine(newMedicine);
         if (result.success) {
             setIsAddModalOpen(false);
-            alert(result.message);
+            showToast('success', 'Berhasil! ✅', 'Obat baru berhasil ditambahkan ke inventaris.');
         } else {
-            alert(result.message);
+            showToast('error', 'Gagal Menambahkan', result.message);
         }
     };
 
@@ -38,26 +56,34 @@ const InventoryPage = () => {
         const result = await updateMedicine(id, updatedData);
         if (result.success) {
             setIsEditModalOpen(false);
-            alert(result.message);
+            showToast('success', 'Update Berhasil! ✅', 'Data obat berhasil diperbarui.');
         } else {
-            alert(result.message);
+            showToast('error', 'Gagal Update', result.message);
         }
     };
 
-    const handleDeleteMedicine = async (id) => {
-        if (window.confirm("Are you sure you want to delete this medicine?")) {
-            const result = await deleteMedicine(id);
-            alert(result.message);
+    const handleDeleteClick = (id, name) => {
+        setConfirmDialog({ visible: true, id, name });
+    };
+
+    const handleConfirmDelete = async () => {
+        const { id } = confirmDialog;
+        setConfirmDialog({ visible: false, id: null, name: '' });
+
+        const result = await deleteMedicine(id);
+        if (result.success) {
+            showToast('success', 'Obat Dihapus! 🗑️', 'Data obat berhasil dihapus dari inventaris.');
+        } else {
+            showToast('error', 'Gagal Menghapus', result.message);
         }
     };
 
-    const handleImport = async (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
+    const handleCancelDelete = () => {
+        setConfirmDialog({ visible: false, id: null, name: '' });
+    };
 
-        const result = await importMedicines(file);
-        alert(result.message);
-        e.target.value = null;
+    const handleImport = async (formData) => {
+        return await importMedicines(formData);
     };
 
     const handleSearch = (query) => {
@@ -72,7 +98,7 @@ const InventoryPage = () => {
     return (
         <div className="animate-fade-in">
             <InventoryHeader
-                onImport={handleImport}
+                onImportClick={() => setIsImportModalOpen(true)}
                 onAddClick={() => setIsAddModalOpen(true)}
                 onSearch={handleSearch}
             />
@@ -91,7 +117,7 @@ const InventoryPage = () => {
                 <MedicineTable
                     medicines={medicines}
                     onEditClick={openEditModal}
-                    onDeleteClick={handleDeleteMedicine}
+                    onDeleteClick={handleDeleteClick}
                 />
             )}
 
@@ -107,6 +133,31 @@ const InventoryPage = () => {
                 onClose={() => setIsEditModalOpen(false)}
                 onUpdate={handleUpdateMedicine}
                 medicine={selectedMedicine}
+            />
+
+            <ImportCsvModal
+                isOpen={isImportModalOpen}
+                onClose={() => setIsImportModalOpen(false)}
+                onImport={handleImport}
+            />
+
+            {/* Toast Notification */}
+            <ToastNotification
+                isVisible={toast.visible}
+                type={toast.type}
+                title={toast.title}
+                message={toast.message}
+                duration={toast.duration}
+                onClose={hideToast}
+            />
+
+            {/* Confirm Delete Dialog */}
+            <ConfirmDialog
+                isVisible={confirmDialog.visible}
+                title="Hapus Obat"
+                message={`Apakah Anda yakin ingin menghapus "${confirmDialog.name}" dari inventaris? Tindakan ini tidak dapat dibatalkan.`}
+                onConfirm={handleConfirmDelete}
+                onCancel={handleCancelDelete}
             />
         </div>
     );

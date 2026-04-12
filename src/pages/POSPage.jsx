@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useCart } from '../hooks/useCart';
 import { useMedicines } from '../hooks/useMedicines';
 import { Search, ShoppingCart, Plus, Minus, Trash2 } from 'lucide-react';
+import ToastNotification from '../components/ui/ToastNotification';
 
 const POSPage = () => {
     const {
@@ -21,10 +22,20 @@ const POSPage = () => {
     const { medicines, searchMedicines, loading: medicinesLoading } = useMedicines();
     const [searchTerm, setSearchTerm] = useState('');
 
+    // Toast state
+    const [toast, setToast] = useState({ visible: false, type: 'info', title: '', message: '' });
+
+    const showToast = (type, title, message, duration = 3000) => {
+        setToast({ visible: true, type, title, message, duration });
+    };
+
+    const hideToast = () => {
+        setToast(prev => ({ ...prev, visible: false }));
+    };
+
     // Debounce search
     useEffect(() => {
         if (!searchTerm.trim()) {
-            // Immediately fetch all if search is cleared
             searchMedicines('');
             return;
         }
@@ -35,14 +46,36 @@ const POSPage = () => {
 
         return () => clearTimeout(timer);
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [searchTerm]); // Only run when searchTerm changes, ignore searchMedicines to prevent loop
+    }, [searchTerm]);
 
     const handleCheckout = async () => {
+        // Validasi nama kasir
+        if (!cashierName || cashierName.trim() === '' || cashierName.toUpperCase() === 'MASUKKAN NAMA KASIR') {
+            showToast('warning', 'Nama Kasir Kosong', 'Silakan masukkan nama kasir terlebih dahulu sebelum memproses transaksi.');
+            return;
+        }
+
+        // Validasi keranjang kosong
+        if (cart.length === 0) {
+            showToast('warning', 'Keranjang Kosong', 'Tambahkan obat ke keranjang sebelum checkout.');
+            return;
+        }
+
+        // Validasi uang pembayaran
+        const total = calculateTotal();
+        const paid = Number(amountPaid || 0);
+        if (paid < total) {
+            const kurang = total - paid;
+            showToast('error', 'Pembayaran Kurang', `Uang pembeli kurang Rp ${kurang.toLocaleString()}. Silakan tambahkan jumlah pembayaran.`);
+            return;
+        }
+
         const result = await processCheckout();
-        alert(result.message);
         if (result.success) {
-            // Refresh stock data freshly from server
+            showToast('success', 'Transaksi Berhasil! 🎉', result.message, 4000);
             searchMedicines('');
+        } else {
+            showToast('error', 'Transaksi Gagal', result.message);
         }
     };
 
@@ -104,7 +137,13 @@ const POSPage = () => {
                         type="text"
                         value={cashierName}
                         onChange={(e) => setCashierName(e.target.value)}
+                        onFocus={(e) => {
+                            if (e.target.value === 'MASUKKAN NAMA KASIR') {
+                                setCashierName('');
+                            }
+                        }}
                         className="w-full border rounded px-2 py-1 text-sm focus:outline-none focus:border-teal-500"
+                        placeholder="Masukkan nama kasir..."
                     />
                 </div>
 
@@ -160,15 +199,25 @@ const POSPage = () => {
 
                     <button
                         onClick={handleCheckout}
-                        disabled={checkoutLoading || cart.length === 0 || Number(amountPaid || 0) < calculateTotal()}
+                        disabled={checkoutLoading}
                         className={`w-full py-3 mt-2 rounded-lg font-bold text-white shadow transition
-                            ${checkoutLoading || cart.length === 0 || Number(amountPaid || 0) < calculateTotal() ? 'bg-gray-400 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700'}
+                            ${checkoutLoading ? 'bg-gray-400 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700'}
                         `}
                     >
                         {checkoutLoading ? 'Memproses...' : 'Proses Transaksi'}
                     </button>
                 </div>
             </div>
+
+            {/* Toast Notification */}
+            <ToastNotification
+                isVisible={toast.visible}
+                type={toast.type}
+                title={toast.title}
+                message={toast.message}
+                duration={toast.duration}
+                onClose={hideToast}
+            />
         </div>
     );
 };
