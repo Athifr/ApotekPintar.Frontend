@@ -101,9 +101,11 @@ const POSPage = () => {
                         </div>
                     ) : (
                         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                            {medicines.map((medicine) => (
+                            {medicines.map((medicine) => {
+                                const isObatKeras = medicine.categoryId === 2;
+                                return (
                                 <div key={medicine.id}
-                                    className="bg-white p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer flex flex-col justify-between"
+                                    className={`${isObatKeras ? 'bg-red-50 border border-red-200' : 'bg-white'} p-4 rounded-lg shadow hover:shadow-lg transition cursor-pointer flex flex-col justify-between`}
                                     onClick={() => addToCart(medicine)}>
                                     <div>
                                         <h3 className="font-bold text-gray-800 text-sm line-clamp-2">{medicine.medicineName} {medicine.unit ? `(${medicine.unit})` : ''}</h3>
@@ -116,7 +118,7 @@ const POSPage = () => {
                                         </div>
                                     </div>
                                 </div>
-                            ))}
+                            )})}
                         </div>
                     )}
                 </div>

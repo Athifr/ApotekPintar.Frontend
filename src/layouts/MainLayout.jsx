@@ -12,6 +12,7 @@ const MainLayout = () => {
     const getActiveTab = () => {
         const path = location.pathname;
         if (path === '/' || path === '/inventory') return 'inventory';
+        if (path === '/categories') return 'categories';
         if (path === '/pos') return 'pos';
         if (path === '/reports') return 'revenue';
         return 'inventory';
@@ -19,6 +20,7 @@ const MainLayout = () => {
 
     const handleTabChange = (tab) => {
         if (tab === 'inventory') navigate('/inventory');
+        if (tab === 'categories') navigate('/categories');
         if (tab === 'pos') navigate('/pos');
         if (tab === 'revenue') navigate('/reports');
     };

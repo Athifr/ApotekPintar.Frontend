@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, Loader } from 'lucide-react';
+import { getCategories } from '../../../services/categoryService';
 
 const AddMedicineModal = ({ isOpen, onClose, onAdd }) => {
     const [formData, setFormData] = useState({
@@ -10,6 +11,30 @@ const AddMedicineModal = ({ isOpen, onClose, onAdd }) => {
         stock: '',
         price: ''
     });
+    const [categories, setCategories] = useState([]);
+    const [loadingCategories, setLoadingCategories] = useState(true);
+    const [errorCategories, setErrorCategories] = useState(null);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                setLoadingCategories(true);
+                const data = await getCategories();
+                setCategories(data);
+                if (data.length > 0) {
+                    setFormData(prev => ({ ...prev, categoryId: data[0].id }));
+                }
+            } catch (err) {
+                setErrorCategories('Failed to load categories');
+            } finally {
+                setLoadingCategories(false);
+            }
+        };
+
+        if (isOpen) {
+            fetchCategories();
+        }
+    }, [isOpen]);
 
     if (!isOpen) return null;
 
@@ -70,16 +95,28 @@ const AddMedicineModal = ({ isOpen, onClose, onAdd }) => {
                     </div>
                     <div className="mb-4">
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="categoryId">
-                            Category ID
+                            Category
                         </label>
-                        <input
-                            type="number"
-                            name="categoryId"
-                            value={formData.categoryId}
-                            onChange={handleChange}
-                            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            placeholder="e.g. 1"
-                        />
+                        {loadingCategories ? (
+                            <div className="flex items-center text-gray-500 text-sm py-2">
+                                <Loader size={16} className="animate-spin mr-2" />
+                                Memuat kategori...
+                            </div>
+                        ) : errorCategories ? (
+                            <div className="text-red-500 text-sm py-2">{errorCategories}</div>
+                        ) : (
+                            <select
+                                name="categoryId"
+                                value={formData.categoryId}
+                                onChange={handleChange}
+                                className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            >
+                                <option value="" disabled>Pilih Kategori</option>
+                                {categories.map(cat => (
+                                    <option key={cat.id} value={cat.id}>{cat.categoryName}</option>
+                                ))}
+                            </select>
+                        )}
                     </div>
                     <div className="mb-4">
                         <label className="block text-gray-700 text-sm font-bold mb-2" htmlFor="sku">

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Package, BarChart3, Pill, ShoppingCart, FileText } from 'lucide-react';
+import { Package, BarChart3, Pill, ShoppingCart, FileText, Layers } from 'lucide-react';
 
 const Sidebar = ({ activeTab, onTabChange }) => {
     return (
@@ -21,6 +21,17 @@ const Sidebar = ({ activeTab, onTabChange }) => {
                 >
                     <Package size={20} />
                     <span>Inventory</span>
+                </button>
+
+                <button
+                    onClick={() => onTabChange('categories')}
+                    className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg transition-colors duration-200 ${activeTab === 'categories'
+                            ? 'bg-teal-50 text-teal-600 font-semibold'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                        }`}
+                >
+                    <Layers size={20} />
+                    <span>Kategori</span>
                 </button>
 
                 <button
