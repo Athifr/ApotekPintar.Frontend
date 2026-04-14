@@ -1,11 +1,16 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import MainLayout from './layouts/MainLayout';
-import InventoryPage from './pages/InventoryPage';
-import CategoriesPage from './pages/CategoriesPage';
-import POSPage from './pages/POSPage';
-import ReportsPage from './pages/ReportsPage';
-// import './index.css'; // Already imported in main.jsx usually, but App.css might be there.
+import React from "react";
+import {
+  BrowserRouter as Router,
+  Routes,
+  Route,
+  Navigate,
+} from "react-router-dom";
+import MainLayout from "./layouts/MainLayout";
+import InventoryPage from "./pages/InventoryPage";
+import CategoriesPage from "./pages/CategoriesPage";
+import POSPage from "./pages/POSPage";
+import ReportsPage from "./pages/ReportsPage";
+import IngredientsPage from "./pages/IngredientsPage";
 
 function App() {
   return (
@@ -17,6 +22,7 @@ function App() {
           <Route path="categories" element={<CategoriesPage />} />
           <Route path="pos" element={<POSPage />} />
           <Route path="reports" element={<ReportsPage />} />
+          <Route path="ingredients" element={<IngredientsPage />} />
         </Route>
       </Routes>
     </Router>
